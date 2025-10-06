@@ -22,6 +22,14 @@ export default function Home() {
   const [streak, setStreak] = useState(0)
   const [showHint, setShowHint] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
+  const [history, setHistory] = useState<Array<{
+    problem: string
+    userAnswer: number
+    correctAnswer: number
+    isCorrect: boolean
+    timestamp: Date
+  }>>([])
+  const [showHistory, setShowHistory] = useState(false)
 
   const generateProblem = async () => {
     setIsLoading(true)
@@ -88,6 +96,17 @@ export default function Home() {
         setStreak(prev => prev + 1)
       } else {
         setStreak(0)
+      }
+
+      // Add to history
+      if (problem) {
+        setHistory(prev => [{
+          problem: problem.problem_text,
+          userAnswer: Number(userAnswer),
+          correctAnswer: data.correct_answer,
+          isCorrect: data.is_correct,
+          timestamp: new Date()
+        }, ...prev].slice(0, 10)) // Keep last 10
       }
     } catch (error) {
       console.error('Error submitting answer:', error)
@@ -272,6 +291,53 @@ export default function Home() {
             <div className="text-5xl mb-4">📚</div>
             <p className="text-xl text-gray-700 font-medium">Ready to practice?</p>
             <p className="text-base text-gray-600 mt-2">Click "Get New Problem" to start</p>
+          </div>
+        )}
+
+        {/* History Section */}
+        {history.length > 0 && (
+          <div className="mt-8">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="w-full bg-white rounded-xl border-2 border-blue-200 shadow-sm p-4 text-left font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+            >
+              {showHistory ? '▼' : '▶'} Problem History ({history.length})
+            </button>
+
+            {showHistory && (
+              <div className="mt-4 space-y-3">
+                {history.map((item, index) => (
+                  <div
+                    key={index}
+                    className={`bg-white rounded-xl border-2 p-4 ${
+                      item.isCorrect ? 'border-green-200' : 'border-red-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <span className={`text-sm font-bold ${
+                        item.isCorrect ? 'text-green-700' : 'text-red-700'
+                      }`}>
+                        {item.isCorrect ? '✓ Correct' : '✗ Wrong'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {item.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2 line-clamp-2">{item.problem}</p>
+                    <div className="flex gap-4 text-xs">
+                      <span className="text-gray-600">
+                        Your answer: <strong>{item.userAnswer}</strong>
+                      </span>
+                      {!item.isCorrect && (
+                        <span className="text-gray-600">
+                          Correct: <strong>{item.correctAnswer}</strong>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

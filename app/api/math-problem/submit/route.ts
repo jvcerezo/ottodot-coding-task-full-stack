@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       is_correct: isCorrect,
       feedback_text: feedbackText,
+      correct_answer: session.correct_answer,
     });
   } catch (error) {
     console.error('Error submitting answer:', error);
