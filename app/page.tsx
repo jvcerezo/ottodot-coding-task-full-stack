@@ -34,6 +34,7 @@ export default function Home() {
   const [showHint, setShowHint] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
   const [history, setHistory] = useState<HistoryItem[]>([])
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -41,6 +42,8 @@ export default function Home() {
     const savedScore = localStorage.getItem('mathPractice_score')
     const savedStreak = localStorage.getItem('mathPractice_streak')
     const savedHistory = localStorage.getItem('mathPractice_history')
+    const savedDifficulty = localStorage.getItem('mathPractice_difficulty')
+    const savedProblemType = localStorage.getItem('mathPractice_problemType')
 
     if (savedName) {
       setUserName(savedName)
@@ -55,26 +58,48 @@ export default function Home() {
         console.error('Failed to parse history:', e)
       }
     }
+    if (savedDifficulty && ['easy', 'medium', 'hard'].includes(savedDifficulty)) {
+      setDifficulty(savedDifficulty as 'easy' | 'medium' | 'hard')
+    }
+    if (savedProblemType && ['mixed', 'addition', 'subtraction', 'multiplication', 'division'].includes(savedProblemType)) {
+      setProblemType(savedProblemType as 'mixed' | 'addition' | 'subtraction' | 'multiplication' | 'division')
+    }
+    
+    setIsInitialized(true)
   }, [])
 
-  // Save data to localStorage whenever it changes
+  // Save data to localStorage whenever it changes (but not on initial mount)
   useEffect(() => {
+    if (!isInitialized) return
     if (userName) {
       localStorage.setItem('mathPractice_userName', userName)
     }
-  }, [userName])
+  }, [userName, isInitialized])
 
   useEffect(() => {
+    if (!isInitialized) return
     localStorage.setItem('mathPractice_score', score.toString())
-  }, [score])
+  }, [score, isInitialized])
 
   useEffect(() => {
+    if (!isInitialized) return
     localStorage.setItem('mathPractice_streak', streak.toString())
-  }, [streak])
+  }, [streak, isInitialized])
 
   useEffect(() => {
+    if (!isInitialized) return
     localStorage.setItem('mathPractice_history', JSON.stringify(history))
-  }, [history])
+  }, [history, isInitialized])
+
+  useEffect(() => {
+    if (!isInitialized) return
+    localStorage.setItem('mathPractice_difficulty', difficulty)
+  }, [difficulty, isInitialized])
+
+  useEffect(() => {
+    if (!isInitialized) return
+    localStorage.setItem('mathPractice_problemType', problemType)
+  }, [problemType, isInitialized])
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault()
