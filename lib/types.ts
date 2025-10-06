@@ -19,6 +19,8 @@ export type MathProblemSubmission = {
 export type GeneratedProblem = {
   problem_text: string;
   final_answer: number;
+  hint?: string;
+  solution_steps?: string[];
 };
 
 export type SubmissionResponse = {
