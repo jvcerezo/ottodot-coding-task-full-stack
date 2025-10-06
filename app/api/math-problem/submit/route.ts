@@ -79,23 +79,20 @@ export async function POST(request: NextRequest) {
     );
 
     // Save submission to database
-    const { data: submission, error: submissionError } = await supabase
+    const { error: submissionError } = await supabase
       .from('math_problem_submissions')
       .insert({
         session_id,
         user_answer: Number(user_answer),
         is_correct: isCorrect,
         feedback_text: feedbackText,
-      })
-      .select()
-      .single();
+      });
 
     if (submissionError) throw submissionError;
 
     return NextResponse.json({
       is_correct: isCorrect,
       feedback_text: feedbackText,
-      submission_id: submission.id,
     });
   } catch (error) {
     console.error('Error submitting answer:', error);
