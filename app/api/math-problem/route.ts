@@ -5,16 +5,27 @@ import type { GeneratedProblem } from '@/lib/types';
 
 // Initialize Gemini AI client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 // Prompt for generating Primary 5 math problems
-const PROBLEM_GENERATION_PROMPT = `Generate a math word problem suitable for a Primary 5 student (age 10-11).
+const PROBLEM_GENERATION_PROMPT = `Generate a math word problem suitable for a Primary 5 student (age 10-11) based on the Singapore Mathematics Curriculum.
+
+Primary 5 Topics (choose ONE randomly):
+- Whole numbers: Four operations, order of operations, word problems up to 10 million
+- Fractions: Addition, subtraction, multiplication of fractions and mixed numbers
+- Decimals: Four operations with decimals up to 3 decimal places
+- Percentage: Finding percentage of a whole, discount, GST, simple interest
+- Rate: Problems involving rate (e.g., speed, price per unit)
+- Ratio: Simple ratio problems (dividing quantities in a given ratio)
+- Area: Area of rectangles, squares, triangles, and composite figures
+- Volume: Volume of cubes and cuboids
+- Money: Real-world money problems with decimals
 
 Requirements:
-- The problem should involve basic operations: addition, subtraction, multiplication, or division
-- Include real-world context (money, measurement, time, distance, etc.)
-- The final answer must be a single numerical value (not a fraction or expression)
-- Difficulty level should be appropriate for Primary 5
+- Use real-world contexts (shopping, travel, measurements, school scenarios)
+- The final answer must be a single numerical value (whole number or decimal)
+- Difficulty should match Primary 5 level (age 10-11)
+- Problem should require 2-3 steps to solve
 
 Return ONLY a JSON object with this exact structure (no markdown, no code blocks):
 {
@@ -24,8 +35,8 @@ Return ONLY a JSON object with this exact structure (no markdown, no code blocks
 
 Example:
 {
-  "problem_text": "Sarah has 45 stickers. She gives 12 stickers to her friend and buys 23 more. How many stickers does Sarah have now?",
-  "final_answer": 56
+  "problem_text": "A bakery sold 156 cupcakes in the morning and 234 cupcakes in the afternoon. Each cupcake costs $2.50. How much money did the bakery collect from selling cupcakes that day?",
+  "final_answer": 975
 }`;
 
 // Function to generate problem using Gemini AI

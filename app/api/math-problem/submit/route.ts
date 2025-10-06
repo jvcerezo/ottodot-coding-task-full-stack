@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 
 // Initialize Gemini AI client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 // Function to generate personalized feedback
 async function generateFeedback(
