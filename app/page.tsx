@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface MathProblem {
   problem_text: string
@@ -9,7 +9,18 @@ interface MathProblem {
   solution_steps?: string[]
 }
 
+interface HistoryItem {
+  problem: string
+  userAnswer: number
+  correctAnswer: number
+  isCorrect: boolean
+  timestamp: string // Changed to string for localStorage
+}
+
 export default function Home() {
+  const [userName, setUserName] = useState('')
+  const [tempName, setTempName] = useState('')
+  const [showNameModal, setShowNameModal] = useState(true)
   const [problem, setProblem] = useState<MathProblem | null>(null)
   const [userAnswer, setUserAnswer] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -22,13 +33,56 @@ export default function Home() {
   const [streak, setStreak] = useState(0)
   const [showHint, setShowHint] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
-  const [history, setHistory] = useState<Array<{
-    problem: string
-    userAnswer: number
-    correctAnswer: number
-    isCorrect: boolean
-    timestamp: Date
-  }>>([])
+  const [history, setHistory] = useState<HistoryItem[]>([])
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const savedName = localStorage.getItem('mathPractice_userName')
+    const savedScore = localStorage.getItem('mathPractice_score')
+    const savedStreak = localStorage.getItem('mathPractice_streak')
+    const savedHistory = localStorage.getItem('mathPractice_history')
+
+    if (savedName) {
+      setUserName(savedName)
+      setShowNameModal(false)
+    }
+    if (savedScore) setScore(parseInt(savedScore))
+    if (savedStreak) setStreak(parseInt(savedStreak))
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory))
+      } catch (e) {
+        console.error('Failed to parse history:', e)
+      }
+    }
+  }, [])
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    if (userName) {
+      localStorage.setItem('mathPractice_userName', userName)
+    }
+  }, [userName])
+
+  useEffect(() => {
+    localStorage.setItem('mathPractice_score', score.toString())
+  }, [score])
+
+  useEffect(() => {
+    localStorage.setItem('mathPractice_streak', streak.toString())
+  }, [streak])
+
+  useEffect(() => {
+    localStorage.setItem('mathPractice_history', JSON.stringify(history))
+  }, [history])
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (tempName.trim()) {
+      setUserName(tempName.trim())
+      setShowNameModal(false)
+    }
+  }
 
   const generateProblem = async () => {
     setIsLoading(true)
@@ -104,7 +158,7 @@ export default function Home() {
           userAnswer: Number(userAnswer),
           correctAnswer: data.correct_answer,
           isCorrect: data.is_correct,
-          timestamp: new Date()
+          timestamp: new Date().toISOString()
         }, ...prev].slice(0, 10))
       }
     } catch (error) {
@@ -115,28 +169,97 @@ export default function Home() {
     }
   }
 
+  const resetProgress = () => {
+    if (confirm('Are you sure you want to reset all progress?')) {
+      setScore(0)
+      setStreak(0)
+      setHistory([])
+      localStorage.removeItem('mathPractice_score')
+      localStorage.removeItem('mathPractice_streak')
+      localStorage.removeItem('mathPractice_history')
+    }
+  }
+
+  const changeName = () => {
+    setTempName(userName)
+    setShowNameModal(true)
+  }
+
+  // Name Modal
+  if (showNameModal) {
+    return (
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl border-2 border-blue-200 shadow-lg p-8 max-w-md w-full">
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-4">👋</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Math Practice!</h2>
+            <p className="text-gray-600">What's your name?</p>
+          </div>
+          <form onSubmit={handleNameSubmit}>
+            <input
+              type="text"
+              value={tempName}
+              onChange={(e) => setTempName(e.target.value)}
+              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+              placeholder="Enter your name"
+              required
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all"
+            >
+              Start Practicing
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-blue-50 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-blue-900">Math Practice</h1>
-          <p className="text-blue-700">Primary 5 • Singapore Syllabus</p>
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-blue-900">Math Practice</h1>
+            <p className="text-blue-700">Primary 5 • Singapore Syllabus</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left Column - Controls & Stats */}
           <div className="space-y-4">
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-lg border-2 border-blue-200 p-4 text-center">
-                <div className="text-xs font-medium text-blue-600 mb-1">Score</div>
-                <div className="text-2xl font-bold text-blue-900">{score}</div>
+            {/* User Info & Stats */}
+            <div className="bg-white rounded-lg border-2 border-blue-200 p-4">
+              <div className="text-center mb-4">
+                <div className="text-2xl font-bold text-gray-900 mb-1">Hello, {userName}! 👋</div>
+                <button
+                  onClick={changeName}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Change name
+                </button>
               </div>
-              <div className="bg-white rounded-lg border-2 border-blue-200 p-4 text-center">
-                <div className="text-xs font-medium text-blue-600 mb-1">Streak</div>
-                <div className="text-2xl font-bold text-blue-900">{streak}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 bg-blue-50 rounded-lg">
+                  <div className="text-xs font-medium text-blue-600 mb-1">Score</div>
+                  <div className="text-2xl font-bold text-blue-900">{score}</div>
+                </div>
+                <div className="text-center p-3 bg-blue-50 rounded-lg">
+                  <div className="text-xs font-medium text-blue-600 mb-1">Streak</div>
+                  <div className="text-2xl font-bold text-blue-900">{streak}</div>
+                </div>
               </div>
+              {(score > 0 || history.length > 0) && (
+                <button
+                  onClick={resetProgress}
+                  className="w-full mt-3 text-xs text-red-600 hover:text-red-800 underline"
+                >
+                  Reset Progress
+                </button>
+              )}
             </div>
 
             {/* Settings */}
@@ -215,7 +338,7 @@ export default function Home() {
                           {item.isCorrect ? '✓' : '✗'}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {item.timestamp.toLocaleTimeString()}
+                          {new Date(item.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 line-clamp-2 mb-1">{item.problem}</p>
@@ -315,7 +438,7 @@ export default function Home() {
                     <div className={`text-lg font-bold mb-2 ${
                       isCorrect ? 'text-green-900' : 'text-orange-900'
                     }`}>
-                      {isCorrect ? '✓ Correct!' : '✗ Not quite'}
+                      {isCorrect ? `✓ Great job, ${userName}!` : `✗ Not quite, ${userName}`}
                     </div>
                     <p className={`text-sm leading-relaxed ${
                       isCorrect ? 'text-green-900' : 'text-orange-900'
@@ -328,8 +451,8 @@ export default function Home() {
             ) : (
               <div className="bg-white rounded-lg border-2 border-blue-200 p-12 text-center">
                 <div className="text-5xl mb-4">📚</div>
-                <p className="text-xl text-gray-700 font-medium mb-2">Ready to practice?</p>
-                <p className="text-gray-600">Click "New Problem" to start</p>
+                <p className="text-xl text-gray-700 font-medium mb-2">Ready, {userName}?</p>
+                <p className="text-gray-600">Click "New Problem" to start practicing!</p>
               </div>
             )}
           </div>
