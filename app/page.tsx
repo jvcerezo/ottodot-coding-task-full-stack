@@ -29,7 +29,6 @@ export default function Home() {
     isCorrect: boolean
     timestamp: Date
   }>>([])
-  const [showHistory, setShowHistory] = useState(false)
 
   const generateProblem = async () => {
     setIsLoading(true)
@@ -106,7 +105,7 @@ export default function Home() {
           correctAnswer: data.correct_answer,
           isCorrect: data.is_correct,
           timestamp: new Date()
-        }, ...prev].slice(0, 10)) // Keep last 10
+        }, ...prev].slice(0, 10))
       }
     } catch (error) {
       console.error('Error submitting answer:', error)
@@ -117,229 +116,224 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50">
-      <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-blue-50 p-4">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-900 mb-2">Math Practice</h1>
-          <p className="text-lg text-blue-700">Primary 5 • Singapore Syllabus</p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-blue-900">Math Practice</h1>
+          <p className="text-blue-700">Primary 5 • Singapore Syllabus</p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border-2 border-blue-200 p-5 text-center">
-            <div className="text-sm font-medium text-blue-600 mb-1">Your Score</div>
-            <div className="text-3xl font-bold text-blue-900">{score}</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border-2 border-blue-200 p-5 text-center">
-            <div className="text-sm font-medium text-blue-600 mb-1">Streak</div>
-            <div className="text-3xl font-bold text-blue-900">{streak}</div>
-          </div>
-        </div>
-
-        {/* Settings */}
-        <div className="bg-white rounded-xl shadow-sm border-2 border-blue-200 p-6 mb-6">
-          <div className="mb-5">
-            <label className="block text-base font-semibold text-gray-800 mb-3">Difficulty Level</label>
-            <div className="flex gap-3">
-              {(['easy', 'medium', 'hard'] as const).map((level) => (
-                <button
-                  key={level}
-                  onClick={() => setDifficulty(level)}
-                  disabled={isLoading}
-                  className={`flex-1 py-3 px-4 rounded-lg text-base font-semibold transition-all ${
-                    difficulty === level
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
-                  }`}
-                >
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-base font-semibold text-gray-800 mb-3">Problem Type</label>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {([
-                { value: 'mixed', label: 'Mixed' },
-                { value: 'addition', label: 'Addition' },
-                { value: 'subtraction', label: 'Subtraction' },
-                { value: 'multiplication', label: 'Multiply' },
-                { value: 'division', label: 'Division' }
-              ] as const).map((type) => (
-                <button
-                  key={type.value}
-                  onClick={() => setProblemType(type.value)}
-                  disabled={isLoading}
-                  className={`py-2.5 px-3 rounded-lg text-sm font-semibold transition-all ${
-                    problemType === type.value
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200'
-                  }`}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={generateProblem}
-            disabled={isLoading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold text-lg py-4 px-4 rounded-xl shadow-md transition-all"
-          >
-            {isLoading ? 'Loading...' : 'Get New Problem'}
-          </button>
-        </div>
-
-        {/* Problem */}
-        {problem && (
-          <div className="bg-white rounded-xl shadow-sm border-2 border-blue-200 p-6 mb-6">
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3">Your Problem</div>
-              <p className="text-xl text-gray-900 leading-relaxed">{problem.problem_text}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Left Column - Controls & Stats */}
+          <div className="space-y-4">
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-lg border-2 border-blue-200 p-4 text-center">
+                <div className="text-xs font-medium text-blue-600 mb-1">Score</div>
+                <div className="text-2xl font-bold text-blue-900">{score}</div>
+              </div>
+              <div className="bg-white rounded-lg border-2 border-blue-200 p-4 text-center">
+                <div className="text-xs font-medium text-blue-600 mb-1">Streak</div>
+                <div className="text-2xl font-bold text-blue-900">{streak}</div>
+              </div>
             </div>
 
-            <form onSubmit={submitAnswer} className="space-y-4">
-              <div>
-                <label htmlFor="answer" className="block text-base font-semibold text-gray-800 mb-2">
-                  Your Answer
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  id="answer"
-                  value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
-                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Type your answer here"
-                  required
-                />
+            {/* Settings */}
+            <div className="bg-white rounded-lg border-2 border-blue-200 p-4">
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Difficulty</label>
+                <div className="flex gap-2">
+                  {(['easy', 'medium', 'hard'] as const).map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => setDifficulty(level)}
+                      disabled={isLoading}
+                      className={`flex-1 py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                        difficulty === level
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { value: 'mixed', label: 'Mixed' },
+                    { value: 'addition', label: 'Add' },
+                    { value: 'subtraction', label: 'Subtract' },
+                    { value: 'multiplication', label: 'Multiply' },
+                    { value: 'division', label: 'Divide' }
+                  ] as const).map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => setProblemType(type.value)}
+                      disabled={isLoading}
+                      className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                        problemType === type.value
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <button
-                type="submit"
-                disabled={!userAnswer || isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold text-lg py-4 px-4 rounded-xl shadow-md transition-all"
+                onClick={generateProblem}
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg transition-all"
               >
-                {isLoading ? 'Checking...' : 'Submit Answer'}
+                {isLoading ? 'Loading...' : 'New Problem'}
               </button>
-            </form>
-
-            {!feedback && (
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setShowHint(!showHint)}
-                  className="py-3 px-4 text-base font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-lg transition-all"
-                >
-                  {showHint ? 'Hide Hint' : 'Need a Hint?'}
-                </button>
-                <button
-                  onClick={() => setShowSolution(!showSolution)}
-                  className="py-3 px-4 text-base font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 rounded-lg transition-all"
-                >
-                  {showSolution ? 'Hide Solution' : 'Show Solution'}
-                </button>
-              </div>
-            )}
-
-            {showHint && problem.hint && (
-              <div className="mt-4 p-5 bg-amber-50 border-2 border-amber-300 rounded-xl">
-                <div className="text-base font-bold text-amber-900 mb-2">💡 Hint</div>
-                <p className="text-base text-amber-900 leading-relaxed">{problem.hint}</p>
-              </div>
-            )}
-
-            {showSolution && problem.solution_steps && (
-              <div className="mt-4 p-5 bg-purple-50 border-2 border-purple-300 rounded-xl">
-                <div className="text-base font-bold text-purple-900 mb-3">📝 Step-by-Step Solution</div>
-                <ol className="space-y-2 list-decimal list-inside">
-                  {problem.solution_steps.map((step, index) => (
-                    <li key={index} className="text-base text-purple-900 leading-relaxed">{step}</li>
-                  ))}
-                </ol>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Feedback */}
-        {feedback && (
-          <div className={`rounded-xl border-2 p-6 ${
-            isCorrect
-              ? 'bg-green-50 border-green-300'
-              : 'bg-orange-50 border-orange-300'
-          }`}>
-            <div className={`text-xl font-bold mb-3 ${
-              isCorrect ? 'text-green-900' : 'text-orange-900'
-            }`}>
-              {isCorrect ? '✓ Correct! Well done!' : '✗ Not quite right'}
             </div>
-            <p className={`text-base leading-relaxed ${
-              isCorrect ? 'text-green-900' : 'text-orange-900'
-            }`}>
-              {feedback}
-            </p>
-          </div>
-        )}
 
-        {/* Empty State */}
-        {!problem && !isLoading && (
-          <div className="text-center py-16 bg-white rounded-xl border-2 border-blue-200 shadow-sm">
-            <div className="text-5xl mb-4">📚</div>
-            <p className="text-xl text-gray-700 font-medium">Ready to practice?</p>
-            <p className="text-base text-gray-600 mt-2">Click "Get New Problem" to start</p>
-          </div>
-        )}
-
-        {/* History Section */}
-        {history.length > 0 && (
-          <div className="mt-8">
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="w-full bg-white rounded-xl border-2 border-blue-200 shadow-sm p-4 text-left font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
-            >
-              {showHistory ? '▼' : '▶'} Problem History ({history.length})
-            </button>
-
-            {showHistory && (
-              <div className="mt-4 space-y-3">
-                {history.map((item, index) => (
-                  <div
-                    key={index}
-                    className={`bg-white rounded-xl border-2 p-4 ${
-                      item.isCorrect ? 'border-green-200' : 'border-red-200'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <span className={`text-sm font-bold ${
-                        item.isCorrect ? 'text-green-700' : 'text-red-700'
-                      }`}>
-                        {item.isCorrect ? '✓ Correct' : '✗ Wrong'}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {item.timestamp.toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-2 line-clamp-2">{item.problem}</p>
-                    <div className="flex gap-4 text-xs">
-                      <span className="text-gray-600">
-                        Your answer: <strong>{item.userAnswer}</strong>
-                      </span>
-                      {!item.isCorrect && (
-                        <span className="text-gray-600">
-                          Correct: <strong>{item.correctAnswer}</strong>
+            {/* History */}
+            {history.length > 0 && (
+              <div className="bg-white rounded-lg border-2 border-blue-200 p-4">
+                <h3 className="text-sm font-bold text-gray-800 mb-3">Recent ({history.length})</h3>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {history.map((item, index) => (
+                    <div
+                      key={index}
+                      className={`p-2 rounded border-l-4 ${
+                        item.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <span className={`text-xs font-bold ${
+                          item.isCorrect ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                          {item.isCorrect ? '✓' : '✗'}
                         </span>
-                      )}
+                        <span className="text-xs text-gray-500">
+                          {item.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 line-clamp-2 mb-1">{item.problem}</p>
+                      <div className="text-xs text-gray-500">
+                        You: {item.userAnswer}
+                        {!item.isCorrect && ` • Correct: ${item.correctAnswer}`}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
-        )}
+
+          {/* Middle Column - Problem & Answer */}
+          <div className="lg:col-span-2 space-y-4">
+            {problem ? (
+              <>
+                {/* Problem */}
+                <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
+                  <div className="mb-4">
+                    <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">Your Problem</div>
+                    <p className="text-lg text-gray-900 leading-relaxed">{problem.problem_text}</p>
+                  </div>
+
+                  <form onSubmit={submitAnswer} className="space-y-3">
+                    <div>
+                      <label htmlFor="answer" className="block text-sm font-semibold text-gray-800 mb-2">
+                        Your Answer
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        id="answer"
+                        value={userAnswer}
+                        onChange={(e) => setUserAnswer(e.target.value)}
+                        className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Type your answer"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={!userAnswer || isLoading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold text-lg py-3 rounded-lg transition-all"
+                    >
+                      {isLoading ? 'Checking...' : 'Submit'}
+                    </button>
+                  </form>
+
+                  {!feedback && (
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setShowHint(!showHint)}
+                        className="py-2 px-3 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-lg"
+                      >
+                        {showHint ? 'Hide' : 'Hint'}
+                      </button>
+                      <button
+                        onClick={() => setShowSolution(!showSolution)}
+                        className="py-2 px-3 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 rounded-lg"
+                      >
+                        {showSolution ? 'Hide' : 'Solution'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Hint */}
+                {showHint && problem.hint && (
+                  <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+                    <div className="text-sm font-bold text-amber-900 mb-2">💡 Hint</div>
+                    <p className="text-sm text-amber-900 leading-relaxed">{problem.hint}</p>
+                  </div>
+                )}
+
+                {/* Solution */}
+                {showSolution && problem.solution_steps && (
+                  <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
+                    <div className="text-sm font-bold text-purple-900 mb-2">📝 Solution</div>
+                    <ol className="space-y-1 list-decimal list-inside text-sm text-purple-900">
+                      {problem.solution_steps.map((step, index) => (
+                        <li key={index}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                {/* Feedback */}
+                {feedback && (
+                  <div className={`rounded-lg border-2 p-5 ${
+                    isCorrect
+                      ? 'bg-green-50 border-green-300'
+                      : 'bg-orange-50 border-orange-300'
+                  }`}>
+                    <div className={`text-lg font-bold mb-2 ${
+                      isCorrect ? 'text-green-900' : 'text-orange-900'
+                    }`}>
+                      {isCorrect ? '✓ Correct!' : '✗ Not quite'}
+                    </div>
+                    <p className={`text-sm leading-relaxed ${
+                      isCorrect ? 'text-green-900' : 'text-orange-900'
+                    }`}>
+                      {feedback}
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-white rounded-lg border-2 border-blue-200 p-12 text-center">
+                <div className="text-5xl mb-4">📚</div>
+                <p className="text-xl text-gray-700 font-medium mb-2">Ready to practice?</p>
+                <p className="text-gray-600">Click "New Problem" to start</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
