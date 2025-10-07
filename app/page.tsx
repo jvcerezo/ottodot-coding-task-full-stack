@@ -36,6 +36,8 @@ export default function Home() {
   const [showSolution, setShowSolution] = useState(false)
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -239,25 +241,25 @@ export default function Home() {
   if (showNameModal) {
     return (
       <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl border-2 border-blue-200 shadow-lg p-8 max-w-md w-full">
+        <div className="bg-white rounded-xl border-2 border-blue-200 shadow-lg p-6 sm:p-8 max-w-md w-full">
           <div className="text-center mb-6">
-            <div className="text-5xl mb-4">👋</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Math Practice!</h2>
-            <p className="text-gray-600">What's your name?</p>
+            <div className="text-4xl sm:text-5xl mb-4">👋</div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Welcome to Math Practice!</h2>
+            <p className="text-sm sm:text-base text-gray-600">What's your name?</p>
           </div>
           <form onSubmit={handleNameSubmit}>
             <input
               type="text"
               value={tempName}
               onChange={(e) => setTempName(e.target.value)}
-              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+              className="w-full px-4 py-3 text-base sm:text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
               placeholder="Enter your name"
               required
               autoFocus
             />
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all"
+              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-lg transition-all text-base sm:text-lg"
             >
               Start Practicing
             </button>
@@ -268,19 +270,178 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 p-4">
+    <div className="min-h-screen bg-blue-50 pb-4 lg:pb-0 lg:p-4">
+      {/* Mobile Header - Hidden on Desktop */}
+      <div className="lg:hidden sticky top-0 z-30 bg-white border-b-2 border-blue-200 shadow-sm">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-blue-900">Math Practice</h1>
+              <p className="text-xs sm:text-sm text-blue-700">Primary 5 • Singapore</p>
+            </div>
+            <button
+              onClick={changeName}
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              {userName}
+            </button>
+          </div>
+          
+          {/* Compact Stats Bar */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex-1 bg-blue-50 rounded-lg px-3 py-2 text-center">
+              <div className="text-xs text-blue-600 font-medium">Score</div>
+              <div className="text-lg font-bold text-blue-900">{score}</div>
+            </div>
+            <div className="flex-1 bg-blue-50 rounded-lg px-3 py-2 text-center">
+              <div className="text-xs text-blue-600 font-medium">Streak</div>
+              <div className="text-lg font-bold text-blue-900">{streak}</div>
+            </div>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className={`flex-1 rounded-lg px-3 py-2 text-center font-semibold transition-all ${
+                showSettings 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+              }`}
+            >
+              <div className="text-xs">Settings</div>
+              <div className="text-lg">{showSettings ? '▲' : '⚙️'}</div>
+            </button>
+            {history.length > 0 && (
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`flex-1 rounded-lg px-3 py-2 text-center font-semibold transition-all ${
+                  showHistory 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                }`}
+              >
+                <div className="text-xs">History</div>
+                <div className="text-lg">{showHistory ? '▼' : '📊'}</div>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Collapsible Settings Panel */}
+        {showSettings && (
+          <div className="border-t-2 border-blue-100 bg-blue-50 px-4 py-3 space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-800 mb-2">Difficulty</label>
+              <div className="flex gap-2">
+                {(['easy', 'medium', 'hard'] as const).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setDifficulty(level)}
+                    disabled={isLoading}
+                    className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-semibold transition-all ${
+                      difficulty === level
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 active:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-800 mb-2">Problem Type</label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { value: 'mixed', label: 'Mixed', emoji: '🔀' },
+                  { value: 'addition', label: 'Add', emoji: '➕' },
+                  { value: 'subtraction', label: 'Sub', emoji: '➖' },
+                  { value: 'multiplication', label: 'Mul', emoji: '✖️' },
+                  { value: 'division', label: 'Div', emoji: '➗' }
+                ] as const).map((type) => (
+                  <button
+                    key={type.value}
+                    onClick={() => setProblemType(type.value)}
+                    disabled={isLoading}
+                    className={`py-2.5 px-2 rounded-lg text-xs font-semibold transition-all ${
+                      problemType === type.value
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 active:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    <div className="text-base mb-0.5">{type.emoji}</div>
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={generateProblem}
+              disabled={isLoading}
+              className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg transition-all shadow-md"
+            >
+              {isLoading ? 'Loading...' : '✨ Generate New Problem'}
+            </button>
+
+            {(score > 0 || history.length > 0) && (
+              <button
+                onClick={resetProgress}
+                className="w-full text-xs text-red-600 hover:text-red-800 active:text-red-900 underline py-1"
+              >
+                Reset All Progress
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Collapsible History Panel */}
+        {showHistory && history.length > 0 && (
+          <div className="border-t-2 border-blue-100 bg-white px-4 py-3">
+            <h3 className="text-xs font-bold text-gray-800 mb-2">Recent Problems ({history.length})</h3>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {history.map((item, index) => (
+                <div
+                  key={index}
+                  className={`p-2.5 rounded-lg border-l-4 ${
+                    item.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <span className={`text-xs font-bold ${
+                      item.isCorrect ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {item.isCorrect ? '✓ Correct' : '✗ Incorrect'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(item.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-700 mb-1 line-clamp-2">{item.problem}</p>
+                  <div className="text-xs text-gray-600">
+                    Your answer: <span className="font-semibold">{item.userAnswer}</span>
+                    {!item.isCorrect && (
+                      <> • Correct: <span className="font-semibold text-green-700">{item.correctAnswer}</span></>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Layout - Original Sidebar Design */}
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 flex justify-between items-start">
+        {/* Desktop Header - Hidden on Mobile */}
+        <div className="hidden lg:flex mb-6 justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-blue-900">Math Practice</h1>
             <p className="text-blue-700">Primary 5 • Singapore Syllabus</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Left Column - Controls & Stats */}
-          <div className="space-y-4">
+        <div className="lg:grid lg:grid-cols-3 lg:gap-4">
+          {/* Desktop Sidebar - Hidden on Mobile */}
+          <div className="hidden lg:block space-y-4">
             {/* User Info & Stats */}
             <div className="bg-white rounded-lg border-2 border-blue-200 p-4">
               <div className="text-center mb-4">
@@ -403,15 +564,17 @@ export default function Home() {
             )}
           </div>
 
-          {/* Middle Column - Problem & Answer */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* Main Content - Works for Both Mobile and Desktop */}
+          <div className="px-4 lg:px-0 mt-4 lg:mt-0 lg:col-span-2 space-y-4">
             {problem ? (
               <>
-                {/* Problem */}
-                <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
+                {/* Problem Card */}
+                <div className="bg-white rounded-lg border-2 border-blue-200 p-4 sm:p-6 shadow-sm">
                   <div className="mb-4">
-                    <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">Your Problem</div>
-                    <p className="text-lg text-gray-900 leading-relaxed">{problem.problem_text}</p>
+                    <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3 lg:mb-3 flex items-center gap-1">
+                      <span className="lg:hidden">📝</span> Your Problem
+                    </div>
+                    <p className="text-base sm:text-lg text-gray-900 leading-relaxed">{problem.problem_text}</p>
                   </div>
 
                   <form onSubmit={submitAnswer} className="space-y-3">
@@ -426,7 +589,7 @@ export default function Home() {
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
                         disabled={!!feedback || isLoading}
-                        className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
+                        className="w-full px-4 py-3 lg:py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                         placeholder="Type your answer"
                         required
                       />
@@ -435,9 +598,14 @@ export default function Home() {
                     <button
                       type="submit"
                       disabled={!userAnswer || isLoading || !!feedback}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg transition-all"
+                      className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base sm:text-lg py-3 lg:py-3 rounded-lg transition-all shadow-md lg:shadow-none"
                     >
-                      {isLoading ? 'Checking...' : 'Submit'}
+                      {isLoading ? (
+                        <span className="lg:hidden">⏳ Checking...</span>
+                      ) : (
+                        <span className="lg:hidden">✓ Submit Answer</span>
+                      )}
+                      <span className="hidden lg:inline">{isLoading ? 'Checking...' : 'Submit'}</span>
                     </button>
                   </form>
 
@@ -445,15 +613,17 @@ export default function Home() {
                     <div className="mt-4 grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setShowHint(!showHint)}
-                        className="py-2 px-3 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-lg"
+                        className="py-2 lg:py-2 px-3 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-2 border-amber-300 rounded-lg transition-all"
                       >
-                        {showHint ? 'Hide' : 'Hint'}
+                        <span className="lg:hidden">💡 {showHint ? 'Hide Hint' : 'Show Hint'}</span>
+                        <span className="hidden lg:inline">{showHint ? 'Hide' : 'Hint'}</span>
                       </button>
                       <button
                         onClick={() => setShowSolution(!showSolution)}
-                        className="py-2 px-3 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 rounded-lg"
+                        className="py-2 lg:py-2 px-3 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 border-2 border-purple-300 rounded-lg transition-all"
                       >
-                        {showSolution ? 'Hide' : 'Solution'}
+                        <span className="lg:hidden">📖 {showSolution ? 'Hide Solution' : 'Show Solution'}</span>
+                        <span className="hidden lg:inline">{showSolution ? 'Hide' : 'Solution'}</span>
                       </button>
                     </div>
                   )}
@@ -461,7 +631,7 @@ export default function Home() {
 
                 {/* Hint */}
                 {showHint && problem.hint && (
-                  <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+                  <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 shadow-sm animate-fade-in">
                     <div className="text-sm font-bold text-amber-900 mb-2">💡 Hint</div>
                     <p className="text-sm text-amber-900 leading-relaxed">{problem.hint}</p>
                   </div>
@@ -469,11 +639,11 @@ export default function Home() {
 
                 {/* Solution */}
                 {showSolution && problem.solution_steps && (
-                  <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
-                    <div className="text-sm font-bold text-purple-900 mb-2">📝 Solution</div>
-                    <ol className="space-y-1 list-decimal list-inside text-sm text-purple-900">
+                  <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 shadow-sm animate-fade-in">
+                    <div className="text-sm font-bold text-purple-900 mb-2">📝 Solution<span className="hidden lg:inline"> Steps</span></div>
+                    <ol className="space-y-1.5 list-decimal list-inside text-sm text-purple-900">
                       {problem.solution_steps.map((step, index) => (
-                        <li key={index}>{step}</li>
+                        <li key={index} className="pl-1">{step}</li>
                       ))}
                     </ol>
                   </div>
@@ -481,12 +651,12 @@ export default function Home() {
 
                 {/* Feedback */}
                 {feedback && (
-                  <div className={`rounded-lg border-2 p-5 ${
+                  <div className={`rounded-lg border-2 p-4 sm:p-5 shadow-md animate-fade-in ${
                     isCorrect
                       ? 'bg-green-50 border-green-300'
                       : 'bg-orange-50 border-orange-300'
                   }`}>
-                    <div className={`text-lg font-bold mb-2 ${
+                    <div className={`text-base sm:text-lg font-bold mb-2 ${
                       isCorrect ? 'text-green-900' : 'text-orange-900'
                     }`}>
                       {isCorrect ? `✓ Great job, ${userName}!` : `✗ Not quite, ${userName}`}
@@ -500,10 +670,19 @@ export default function Home() {
                 )}
               </>
             ) : (
-              <div className="bg-white rounded-lg border-2 border-blue-200 p-12 text-center">
-                <div className="text-5xl mb-4">📚</div>
-                <p className="text-xl text-gray-700 font-medium mb-2">Ready, {userName}?</p>
-                <p className="text-gray-600">Click "New Problem" to start practicing!</p>
+              <div className="bg-white rounded-lg border-2 border-blue-200 p-8 sm:p-12 text-center shadow-sm">
+                <div className="text-5xl sm:text-6xl mb-4">📚</div>
+                <p className="text-lg sm:text-xl text-gray-700 font-medium mb-2">Ready, {userName}?</p>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
+                  <span className="lg:hidden">Tap "Settings" and generate a new problem!</span>
+                  <span className="hidden lg:inline">Click "New Problem" to start practicing!</span>
+                </p>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="lg:hidden inline-block bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                >
+                  Open Settings
+                </button>
               </div>
             )}
           </div>
