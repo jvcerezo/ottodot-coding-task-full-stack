@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import OttoTutor from '@/components/OttoTutor'
+import { getOttoEncouragement } from '@/lib/ottoPersonality'
 
 interface MathProblem {
   problem_text: string
@@ -37,6 +39,7 @@ export default function Home() {
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const [activeTab, setActiveTab] = useState<'problem' | 'settings' | 'history'>('problem')
+  const [lastResult, setLastResult] = useState<'correct' | 'incorrect' | null>(null)
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -121,7 +124,7 @@ export default function Home() {
     if (tempName.trim()) {
       setUserName(tempName.trim())
       setShowNameModal(false)
-      toast.success(`Welcome, ${tempName.trim()}! 🎉`)
+      toast.success(`Welcome to Otto's Math Adventure, ${tempName.trim()}! 🐙`)
     }
   }
 
@@ -132,8 +135,9 @@ export default function Home() {
     setIsCorrect(null)
     setShowHint(false)
     setShowSolution(false)
+    setLastResult(null)
 
-    const toastId = toast.loading('Generating new problem...')
+    const toastId = toast.loading('Otto is finding a perfect problem for you...')
 
     try {
       const response = await fetch('/api/math-problem', {
@@ -172,7 +176,7 @@ export default function Home() {
     }
 
     setIsLoading(true)
-    const toastId = toast.loading('Checking your answer...')
+    const toastId = toast.loading('Otto is checking your answer...')
 
     try {
       const response = await fetch('/api/math-problem/submit', {
@@ -192,13 +196,18 @@ export default function Home() {
       setIsCorrect(data.is_correct)
       setFeedback(data.feedback_text)
 
+      // Get Otto's encouragement
+      const ottoMessage = getOttoEncouragement(data.is_correct, streak)
+
       if (data.is_correct) {
         setScore(prev => prev + 10)
         setStreak(prev => prev + 1)
-        toast.success(`Correct! +10 points 🎉`, { id: toastId })
+        setLastResult('correct')
+        toast.success(ottoMessage, { id: toastId, duration: 4000 })
       } else {
         setStreak(0)
-        toast.error('Not quite right. Keep trying! 💪', { id: toastId })
+        setLastResult('incorrect')
+        toast.error(ottoMessage, { id: toastId, duration: 4000 })
       }
 
       // Add to history
@@ -239,48 +248,61 @@ export default function Home() {
   // Name Modal
   if (showNameModal) {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl border-2 border-blue-200 shadow-lg p-6 sm:p-8 max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl border-2 border-purple-300 shadow-2xl p-6 sm:p-8 max-w-md w-full">
           <div className="text-center mb-6">
-            <div className="text-4xl sm:text-5xl mb-4">👋</div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Welcome to Math Practice!</h2>
-            <p className="text-sm sm:text-base text-gray-600">What's your name?</p>
+            <div className="text-6xl sm:text-7xl mb-4 animate-bounce">🐙</div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-purple-900 mb-2">Hi! I'm Otto!</h2>
+            <p className="text-base sm:text-lg text-gray-700 mb-2">Your friendly AI Math Tutor</p>
+            <p className="text-sm text-gray-600">What should I call you?</p>
           </div>
           <form onSubmit={handleNameSubmit}>
             <input
               type="text"
               value={tempName}
               onChange={(e) => setTempName(e.target.value)}
-              className="w-full px-4 py-3 text-base sm:text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+              className="w-full px-4 py-3 text-base sm:text-lg border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 mb-4"
               placeholder="Enter your name"
               required
               autoFocus
             />
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-lg transition-all text-base sm:text-lg"
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 active:scale-95 text-white font-bold py-3 rounded-lg transition-all text-base sm:text-lg shadow-lg"
             >
-              Start Practicing
+              Let's Learn Math! 🚀
             </button>
           </form>
+          <p className="text-xs text-center text-gray-500 mt-4">
+            🐙 With 8 tentacles and lots of personality, we'll make math fun!
+          </p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      {/* Otto Tutor Component */}
+      <OttoTutor 
+        userName={userName}
+        score={score}
+        streak={streak}
+        hasActiveProblem={!!problem}
+        lastResult={lastResult}
+      />
+
       {/* Mobile Header with Stats - Hidden on Desktop */}
-      <div className="lg:hidden sticky top-0 z-30 bg-white border-b-2 border-blue-200 shadow-sm">
+      <div className="lg:hidden sticky top-0 z-30 bg-white border-b-2 border-purple-200 shadow-sm">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-xl font-bold text-blue-900">Math Practice</h1>
-              <p className="text-xs text-blue-700">Primary 5 • Singapore</p>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Otto's Math Lab 🐙</h1>
+              <p className="text-xs text-purple-700">Primary 5 • Singapore</p>
             </div>
             <button
               onClick={changeName}
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
+              className="text-xs text-purple-600 hover:text-purple-800 underline"
             >
               {userName}
             </button>
@@ -288,13 +310,13 @@ export default function Home() {
           
           {/* Compact Stats Bar */}
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-blue-50 rounded-lg px-3 py-2 text-center">
-              <div className="text-xs text-blue-600 font-medium">Score</div>
-              <div className="text-lg font-bold text-blue-900">{score}</div>
+            <div className="flex-1 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg px-3 py-2 text-center border border-yellow-300">
+              <div className="text-xs text-yellow-800 font-medium">Score</div>
+              <div className="text-lg font-bold text-yellow-900">{score}</div>
             </div>
-            <div className="flex-1 bg-blue-50 rounded-lg px-3 py-2 text-center">
-              <div className="text-xs text-blue-600 font-medium">Streak</div>
-              <div className="text-lg font-bold text-blue-900">{streak}</div>
+            <div className="flex-1 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg px-3 py-2 text-center border border-orange-300">
+              <div className="text-xs text-orange-800 font-medium">Streak</div>
+              <div className="text-lg font-bold text-orange-900">{streak}🔥</div>
             </div>
           </div>
         </div>
@@ -581,8 +603,8 @@ export default function Home() {
         {/* Desktop Header */}
         <div className="flex mb-6 justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-blue-900">Math Practice</h1>
-            <p className="text-blue-700">Primary 5 • Singapore Syllabus</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Otto's Math Adventure 🐙</h1>
+            <p className="text-purple-700">Primary 5 Math • Powered by AI Tutoring</p>
           </div>
         </div>
 
@@ -590,24 +612,24 @@ export default function Home() {
           {/* Desktop Sidebar */}
           <div className="space-y-4">
             {/* User Info & Stats */}
-            <div className="bg-white rounded-lg border-2 border-blue-200 p-4">
+            <div className="bg-white rounded-lg border-2 border-purple-200 p-4 shadow-md">
               <div className="text-center mb-4">
-                <div className="text-2xl font-bold text-gray-900 mb-1">Hello, {userName}! 👋</div>
+                <div className="text-2xl font-bold text-purple-900 mb-1">Hey there, {userName}! 🌟</div>
                 <button
                   onClick={changeName}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  className="text-xs text-purple-600 hover:text-purple-800 underline"
                 >
                   Change name
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <div className="text-xs font-medium text-blue-600 mb-1">Score</div>
-                  <div className="text-2xl font-bold text-blue-900">{score}</div>
+                <div className="text-center p-3 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg border border-yellow-300">
+                  <div className="text-xs font-medium text-yellow-800 mb-1">Total Score</div>
+                  <div className="text-2xl font-bold text-yellow-900">{score}</div>
                 </div>
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <div className="text-xs font-medium text-blue-600 mb-1">Streak</div>
-                  <div className="text-2xl font-bold text-blue-900">{streak}</div>
+                <div className="text-center p-3 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg border border-orange-300">
+                  <div className="text-xs font-medium text-orange-800 mb-1">Streak 🔥</div>
+                  <div className="text-2xl font-bold text-orange-900">{streak}</div>
                 </div>
               </div>
               {(score > 0 || history.length > 0) && (
@@ -621,9 +643,9 @@ export default function Home() {
             </div>
 
             {/* Settings */}
-            <div className="bg-white rounded-lg border-2 border-blue-200 p-4">
+            <div className="bg-white rounded-lg border-2 border-purple-200 p-4 shadow-md">
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">Difficulty</label>
+                <label className="block text-sm font-semibold text-purple-800 mb-2">🎯 Difficulty Level</label>
                 <div className="flex gap-2">
                   {(['easy', 'medium', 'hard'] as const).map((level) => (
                     <button
@@ -632,7 +654,7 @@ export default function Home() {
                       disabled={isLoading}
                       className={`flex-1 py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
                         difficulty === level
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                       }`}
                     >
@@ -643,7 +665,7 @@ export default function Home() {
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">Type</label>
+                <label className="block text-sm font-semibold text-purple-800 mb-2">🧮 Problem Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   {([
                     { value: 'mixed', label: 'Mixed' },
@@ -658,7 +680,7 @@ export default function Home() {
                       disabled={isLoading}
                       className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
                         problemType === type.value
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                       }`}
                     >
@@ -671,16 +693,16 @@ export default function Home() {
               <button
                 onClick={generateProblem}
                 disabled={isLoading}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg transition-all"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg transition-all shadow-md"
               >
-                {isLoading ? 'Loading...' : 'New Problem'}
+                {isLoading ? '⏳ Loading...' : '✨ New Problem'}
               </button>
             </div>
 
             {/* History */}
             {history.length > 0 && (
-              <div className="bg-white rounded-lg border-2 border-blue-200 p-4">
-                <h3 className="text-sm font-bold text-gray-800 mb-3">Recent ({history.length})</h3>
+              <div className="bg-white rounded-lg border-2 border-purple-200 p-4 shadow-md">
+                <h3 className="text-sm font-bold text-purple-800 mb-3">📚 Recent Problems ({history.length})</h3>
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {history.map((item, index) => (
                     <div
@@ -716,16 +738,16 @@ export default function Home() {
             {problem ? (
               <>
                 {/* Problem Card */}
-                <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
+                <div className="bg-white rounded-lg border-2 border-purple-200 p-6 shadow-md">
                   <div className="mb-4">
-                    <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">Your Problem</div>
+                    <div className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-3">🎯 Your Challenge</div>
                     <p className="text-lg text-gray-900 leading-relaxed">{problem.problem_text}</p>
                   </div>
 
                   <form onSubmit={submitAnswer} className="space-y-3">
                     <div>
                       <label htmlFor="answer" className="block text-sm font-semibold text-gray-800 mb-2">
-                        Your Answer
+                        Your Answer 💡
                       </label>
                       <input
                         type="number"
@@ -734,8 +756,8 @@ export default function Home() {
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
                         disabled={!!feedback || isLoading}
-                        className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
-                        placeholder="Type your answer"
+                        className="w-full px-4 py-3 text-lg border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
+                        placeholder="Type your answer here..."
                         required
                       />
                     </div>
@@ -743,9 +765,9 @@ export default function Home() {
                     <button
                       type="submit"
                       disabled={!userAnswer || isLoading || !!feedback}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg transition-all"
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg transition-all shadow-md"
                     >
-                      {isLoading ? 'Checking...' : 'Submit'}
+                      {isLoading ? '⏳ Checking...' : '✓ Submit Answer'}
                     </button>
                   </form>
 
@@ -755,13 +777,13 @@ export default function Home() {
                         onClick={() => setShowHint(!showHint)}
                         className="py-2 px-3 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-lg transition-all"
                       >
-                        {showHint ? 'Hide' : 'Hint'}
+                        💡 {showHint ? 'Hide Hint' : 'Need a Hint?'}
                       </button>
                       <button
                         onClick={() => setShowSolution(!showSolution)}
                         className="py-2 px-3 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 rounded-lg transition-all"
                       >
-                        {showSolution ? 'Hide' : 'Solution'}
+                        📖 {showSolution ? 'Hide Solution' : 'Show Solution'}
                       </button>
                     </div>
                   )}
@@ -769,16 +791,16 @@ export default function Home() {
 
                 {/* Hint */}
                 {showHint && problem.hint && (
-                  <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 animate-fade-in">
-                    <div className="text-sm font-bold text-amber-900 mb-2">💡 Hint</div>
+                  <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 animate-fade-in shadow-sm">
+                    <div className="text-sm font-bold text-amber-900 mb-2">💡 Otto's Hint</div>
                     <p className="text-sm text-amber-900 leading-relaxed">{problem.hint}</p>
                   </div>
                 )}
 
                 {/* Solution */}
                 {showSolution && problem.solution_steps && (
-                  <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 animate-fade-in">
-                    <div className="text-sm font-bold text-purple-900 mb-2">📝 Solution Steps</div>
+                  <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 animate-fade-in shadow-sm">
+                    <div className="text-sm font-bold text-purple-900 mb-2">📝 Step-by-Step Solution</div>
                     <ol className="space-y-1.5 list-decimal list-inside text-sm text-purple-900">
                       {problem.solution_steps.map((step, index) => (
                         <li key={index} className="pl-1">{step}</li>
@@ -789,7 +811,7 @@ export default function Home() {
 
                 {/* Feedback */}
                 {feedback && (
-                  <div className={`rounded-lg border-2 p-5 animate-fade-in ${
+                  <div className={`rounded-lg border-2 p-5 animate-fade-in shadow-md ${
                     isCorrect
                       ? 'bg-green-50 border-green-300'
                       : 'bg-orange-50 border-orange-300'
@@ -797,7 +819,7 @@ export default function Home() {
                     <div className={`text-lg font-bold mb-2 ${
                       isCorrect ? 'text-green-900' : 'text-orange-900'
                     }`}>
-                      {isCorrect ? `✓ Great job, ${userName}!` : `✗ Not quite, ${userName}`}
+                      {isCorrect ? `🎉 Awesome work, ${userName}!` : `💪 Nice try, ${userName}!`}
                     </div>
                     <p className={`text-sm leading-relaxed ${
                       isCorrect ? 'text-green-900' : 'text-orange-900'
@@ -808,10 +830,11 @@ export default function Home() {
                 )}
               </>
             ) : (
-              <div className="bg-white rounded-lg border-2 border-blue-200 p-12 text-center">
-                <div className="text-6xl mb-4">📚</div>
-                <p className="text-xl text-gray-700 font-medium mb-2">Ready, {userName}?</p>
-                <p className="text-gray-600">Click "New Problem" to start practicing!</p>
+              <div className="bg-white rounded-lg border-2 border-purple-200 p-12 text-center shadow-md">
+                <div className="text-6xl mb-4">🐙</div>
+                <p className="text-2xl text-purple-900 font-bold mb-2">Ready to dive in, {userName}?</p>
+                <p className="text-gray-600 mb-4">Otto's got some awesome math problems waiting for you!</p>
+                <p className="text-sm text-gray-500">Click "✨ New Problem" on the left to start your adventure!</p>
               </div>
             )}
           </div>

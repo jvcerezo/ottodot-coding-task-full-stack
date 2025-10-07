@@ -6,8 +6,8 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Math Problem Generator',
-  description: 'AI-powered math problem generator for Primary 5 students',
+  title: 'Otto the Octopus - AI Math Tutor',
+  description: 'Meet Otto! Your funny and witty AI math tutor for Primary 5 students. Get personalized help, motivation, and make learning math fun!',
 }
 
 export default function RootLayout({
