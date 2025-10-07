@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getOttoMessage, getOttoMotivation, getOttoGreeting, getTimeOfDay } from '@/lib/ottoPersonality'
+import { getOttoMessage, getOttoMotivation, getOttoGreeting, getTimeOfDay, getMotivationalStatement, getAppWalkthrough, getFAQs } from '@/lib/ottoPersonality'
 
 interface OttoTutorProps {
   userName: string
@@ -9,6 +9,30 @@ interface OttoTutorProps {
   streak: number
   hasActiveProblem: boolean
   lastResult?: 'correct' | 'incorrect' | null
+}
+
+// Function to render markdown-style text
+const renderFormattedText = (text: string) => {
+  // Split by lines to preserve structure
+  const lines = text.split('\n')
+  
+  return lines.map((line, idx) => {
+    // Convert **text** to bold
+    const parts = line.split(/(\*\*.*?\*\*)/)
+    const formatted = parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i}>{part.slice(2, -2)}</strong>
+      }
+      return part
+    })
+    
+    return (
+      <span key={idx}>
+        {formatted}
+        {idx < lines.length - 1 && <br />}
+      </span>
+    )
+  })
 }
 
 export default function OttoTutor({ userName, score, streak, hasActiveProblem, lastResult }: OttoTutorProps) {
@@ -104,28 +128,13 @@ export default function OttoTutor({ userName, score, streak, hasActiveProblem, l
 
             {/* Chat Body */}
             <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto bg-gradient-to-b from-purple-50 to-blue-50">
-              {/* Stats Display */}
-              <div className="bg-white/80 backdrop-blur rounded-xl p-3 border border-purple-200">
-                <div className="text-xs font-semibold text-purple-700 mb-2">📊 Your Progress</div>
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg p-2">
-                    <div className="text-xs text-yellow-800">Score</div>
-                    <div className="text-xl font-bold text-yellow-900">{score}</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg p-2">
-                    <div className="text-xs text-orange-800">Streak</div>
-                    <div className="text-xl font-bold text-orange-900">{streak}🔥</div>
-                  </div>
-                </div>
-              </div>
-
               {/* Otto's Message */}
               <div className="bg-white rounded-xl p-4 shadow-sm border border-purple-200">
                 <div className="flex gap-3">
                   <div className="text-2xl flex-shrink-0">🐙</div>
                   <div className="flex-1">
                     <div className="text-sm font-semibold text-purple-700 mb-1">Otto says:</div>
-                    <p className="text-sm text-gray-700 leading-relaxed">{message}</p>
+                    <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">{renderFormattedText(message)}</div>
                   </div>
                 </div>
               </div>
@@ -134,38 +143,30 @@ export default function OttoTutor({ userName, score, streak, hasActiveProblem, l
               <div className="space-y-2">
                 <button
                   onClick={() => {
-                    setMessage(getOttoMotivation(streak, score))
+                    setMessage(getMotivationalStatement())
                     triggerAnimation()
                   }}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-all shadow-md"
                 >
-                  💪 Motivate Me!
+                  Motivate me
                 </button>
                 <button
                   onClick={() => {
-                    setMessage(getOttoMessage('idle'))
+                    setMessage(getAppWalkthrough())
                     triggerAnimation()
                   }}
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-all shadow-md"
                 >
-                  💡 Give Me a Pep Talk
+                  Give me a full walkthrough of the app
                 </button>
                 <button
                   onClick={() => {
-                    const tips = [
-                      "🎯 Pro tip: Break down complex problems into smaller steps!",
-                      "🧠 Remember: Drawing diagrams can make problems clearer!",
-                      "⭐ Fun fact: Making mistakes is how your brain learns best!",
-                      "🌟 Try this: Read the problem twice before solving!",
-                      "💙 Otto's secret: Check your work by working backwards!",
-                      "🎨 Visualization helps! Try drawing what the problem describes!",
-                    ]
-                    setMessage(tips[Math.floor(Math.random() * tips.length)])
+                    setMessage(getFAQs())
                     triggerAnimation()
                   }}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-all shadow-md"
                 >
-                  🎓 Math Tips
+                  FAQs
                 </button>
               </div>
 

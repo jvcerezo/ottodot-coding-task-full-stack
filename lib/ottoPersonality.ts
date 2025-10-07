@@ -148,3 +148,68 @@ export const getTimeOfDay = (): 'morning' | 'afternoon' | 'evening' => {
   if (hour < 18) return 'afternoon'
   return 'evening'
 }
+
+export const getMotivationalStatement = () => {
+  const statements = [
+    "You're doing amazing! Every problem you solve makes you stronger! 💪",
+    "Believe in yourself! You have the power to learn anything you set your mind to! ✨",
+    "Progress, not perfection! Every step forward is a victory! 🌟",
+    "You're capable of incredible things! Keep pushing forward! 🚀",
+    "Your potential is limitless! Don't let anyone tell you otherwise! 🌈",
+    "Mistakes are proof that you're trying! Keep going! 💙",
+    "You're braver than you believe and smarter than you think! 🦋",
+    "Every expert was once a beginner! You're on the right path! 🛤️",
+    "Your hard work will pay off! Keep believing in yourself! 🎯",
+    "You're not just learning math, you're building confidence! 🏆",
+    "Small steps lead to big achievements! You've got this! 👣",
+    "Your effort matters more than your current score! 📈",
+    "Challenges help you grow! Embrace them with courage! 🌱",
+    "You're making Otto proud just by trying! Keep it up! 🐙",
+    "Success is a journey, not a destination! Enjoy the ride! 🎢",
+    "Your brain is like a muscle - the more you use it, the stronger it gets! 🧠",
+    "Don't compare yourself to others! Focus on being better than yesterday! ⭐",
+    "You have everything you need within you to succeed! 💎",
+    "Keep going! The breakthrough is closer than you think! 🔓",
+    "You're writing your own success story, one problem at a time! 📖"
+  ]
+  return statements[Math.floor(Math.random() * statements.length)]
+}
+
+export const getAppWalkthrough = () => {
+  return `Welcome to your math practice app! Here's how it works:
+
+🎯 **Getting Problems**: Click "New Problem" to get a fresh math challenge tailored to your level.
+
+⚙️ **Customize Your Practice**: You can modify the type of problem (addition, subtraction, multiplication, division) and adjust the difficulty level to match your skill!
+
+✍️ **Solving**: Enter your answer in the input field and hit submit to check if you're correct!
+
+📊 **Tracking Progress**: Your score increases with each correct answer. Watch it grow!
+
+📜 **Review Past Problems**: Check the history section to see all your previous problems. Click on any problem to review it in detail!
+
+🐙 **Otto's Help**: That's me! I'm here to motivate you, give hints, and celebrate your wins!
+
+💡 **Tips**: Take your time, read carefully, and don't be afraid to try. Every attempt is a learning opportunity!
+
+Keep practicing and you'll see amazing progress! I believe in you! 🌟`
+}
+
+export const getFAQs = () => {
+  return `**Frequently Asked Questions:**
+
+❓ **How is my score calculated?**
+You earn 10 points for each correct answer!
+
+❓ **Can I skip a problem?**
+Just click "New Problem" to get a different challenge!
+
+❓ **What if I get an answer wrong?**
+No worries! Learn from it and try the next one. Mistakes help you grow!
+
+❓ **How do I improve faster?**
+Practice consistently and take your time to understand each problem!
+
+❓ **Is Otto a real octopus?**
+I'm a virtual tutor, but my encouragement is 100% real! 🐙💙`
+}
