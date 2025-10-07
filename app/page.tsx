@@ -400,7 +400,8 @@ export default function Home() {
                         id="answer"
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
-                        className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        disabled={!!feedback || isLoading}
+                        className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                         placeholder="Type your answer"
                         required
                       />
@@ -408,8 +409,8 @@ export default function Home() {
 
                     <button
                       type="submit"
-                      disabled={!userAnswer || isLoading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold text-lg py-3 rounded-lg transition-all"
+                      disabled={!userAnswer || isLoading || !!feedback}
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg transition-all"
                     >
                       {isLoading ? 'Checking...' : 'Submit'}
                     </button>
