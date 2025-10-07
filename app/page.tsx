@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import OttoTutor from '@/components/OttoTutor'
+import ConfirmModal from '@/components/ConfirmModal'
 import { getOttoEncouragement } from '@/lib/ottoPersonality'
 
 interface MathProblem {
@@ -40,6 +41,7 @@ export default function Home() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [activeTab, setActiveTab] = useState<'problem' | 'settings' | 'history'>('problem')
   const [lastResult, setLastResult] = useState<'correct' | 'incorrect' | null>(null)
+  const [showResetModal, setShowResetModal] = useState(false)
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -229,15 +231,13 @@ export default function Home() {
   }
 
   const resetProgress = () => {
-    if (confirm('Are you sure you want to reset all progress?')) {
-      setScore(0)
-      setStreak(0)
-      setHistory([])
-      localStorage.removeItem('mathPractice_score')
-      localStorage.removeItem('mathPractice_streak')
-      localStorage.removeItem('mathPractice_history')
-      toast.success('Progress reset successfully! 🔄')
-    }
+    setScore(0)
+    setStreak(0)
+    setHistory([])
+    localStorage.removeItem('mathPractice_score')
+    localStorage.removeItem('mathPractice_streak')
+    localStorage.removeItem('mathPractice_history')
+    toast.success('Progress reset successfully! 🔄')
   }
 
   const changeName = () => {
@@ -423,7 +423,7 @@ export default function Home() {
 
             {(score > 0 || history.length > 0) && (
               <button
-                onClick={resetProgress}
+                onClick={() => setShowResetModal(true)}
                 className="w-full text-sm text-red-600 hover:text-red-800 active:text-red-900 underline py-2"
               >
                 Reset All Progress
@@ -614,12 +614,13 @@ export default function Home() {
             {/* User Info & Stats */}
             <div className="bg-white rounded-lg border-2 border-purple-200 p-4 shadow-md">
               <div className="text-center mb-4">
-                <div className="text-2xl font-bold text-purple-900 mb-1">Hey there, {userName}! 🌟</div>
+                <div className="text-2xl font-bold text-purple-900 mb-2">Hey there, {userName}! 🌟</div>
                 <button
                   onClick={changeName}
-                  className="text-xs text-purple-600 hover:text-purple-800 underline"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-full transition-all shadow-sm hover:shadow-md active:scale-95"
                 >
-                  Change name
+                  <span>✏️</span>
+                  <span>Change Name</span>
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -634,10 +635,11 @@ export default function Home() {
               </div>
               {(score > 0 || history.length > 0) && (
                 <button
-                  onClick={resetProgress}
-                  className="w-full mt-3 text-xs text-red-600 hover:text-red-800 underline"
+                  onClick={() => setShowResetModal(true)}
+                  className="w-full mt-3 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-95"
                 >
-                  Reset Progress
+                  <span>🔄</span>
+                  <span>Reset Progress</span>
                 </button>
               )}
             </div>
@@ -840,6 +842,18 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onConfirm={resetProgress}
+        title="Reset Progress"
+        message="Are you sure you want to reset all your progress? This will clear your score, streak, and history. This action cannot be undone!"
+        confirmText="Yes, Reset Everything"
+        cancelText="No, Keep My Progress"
+        type="danger"
+      />
     </div>
   )
 }
