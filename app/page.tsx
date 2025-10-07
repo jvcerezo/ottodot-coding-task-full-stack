@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import OttoTutor from '@/components/OttoTutor'
 import ConfirmModal from '@/components/ConfirmModal'
 import ProblemDetailModal from '@/components/ProblemDetailModal'
+import TutorialModal from '@/components/TutorialModal'
 import { getOttoEncouragement } from '@/lib/ottoPersonality'
 
 interface MathProblem {
@@ -47,6 +48,45 @@ export default function Home() {
   const [showResetModal, setShowResetModal] = useState(false)
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<HistoryItem | null>(null)
   const [showProblemDetailModal, setShowProblemDetailModal] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
+  const [tutorialMode, setTutorialMode] = useState(false)
+
+  // Mock data for tutorial
+  const mockProblem: MathProblem = {
+    problem_text: "Sarah has 48 cookies. She wants to pack them equally into 6 boxes. How many cookies will be in each box?",
+    final_answer: 8,
+    hint: "Think about division! You need to split the total number of cookies equally among the boxes.",
+    solution_steps: [
+      "We need to divide 48 cookies by 6 boxes",
+      "48 ÷ 6 = 8",
+      "Each box will have 8 cookies"
+    ]
+  }
+
+  const mockHistory: HistoryItem[] = [
+    {
+      problem: "If John has 25 marbles and gives 8 to his friend, how many marbles does he have left?",
+      userAnswer: 17,
+      correctAnswer: 17,
+      isCorrect: true,
+      timestamp: new Date(Date.now() - 300000).toISOString(),
+      hint: "Subtract the marbles he gave away from his total.",
+      solution_steps: ["25 - 8 = 17"]
+    },
+    {
+      problem: "A baker made 36 cupcakes. If he sells them in boxes of 4, how many boxes can he make?",
+      userAnswer: 8,
+      correctAnswer: 9,
+      isCorrect: false,
+      timestamp: new Date(Date.now() - 600000).toISOString(),
+      hint: "Divide the total cupcakes by the number per box.",
+      solution_steps: ["36 ÷ 4 = 9", "So the baker can make 9 boxes"]
+    }
+  ]
+
+  // Use mock data when in tutorial mode, otherwise use real data
+  const displayProblem = tutorialMode ? mockProblem : problem
+  const displayHistory = tutorialMode ? mockHistory : history
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -56,10 +96,19 @@ export default function Home() {
     const savedHistory = localStorage.getItem('mathPractice_history')
     const savedDifficulty = localStorage.getItem('mathPractice_difficulty')
     const savedProblemType = localStorage.getItem('mathPractice_problemType')
+    const hasSeenTutorial = localStorage.getItem('mathPractice_hasSeenTutorial')
 
     if (savedName) {
       setUserName(savedName)
       setShowNameModal(false)
+      
+      // Show tutorial if first time user (after name is set)
+      if (!hasSeenTutorial) {
+        setTimeout(() => {
+          setShowTutorial(true)
+          setTutorialMode(true)
+        }, 500)
+      }
     }
     if (savedScore) setScore(parseInt(savedScore))
     if (savedStreak) setStreak(parseInt(savedStreak))
@@ -307,16 +356,28 @@ export default function Home() {
               <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Otto's Math Lab 🐙</h1>
               <p className="text-xs text-purple-700">Primary 5 • Singapore</p>
             </div>
-            <button
-              onClick={changeName}
-              className="text-xs text-purple-600 hover:text-purple-800 underline"
-            >
-              {userName}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setShowTutorial(true)
+                  setTutorialMode(true)
+                }}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-full transition-all active:scale-95"
+                aria-label="Show Tutorial"
+              >
+                <span>📚</span>
+              </button>
+              <button
+                onClick={changeName}
+                className="text-xs text-purple-600 hover:text-purple-800 underline"
+              >
+                {userName}
+              </button>
+            </div>
           </div>
           
           {/* Compact Stats Bar */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" data-tutorial="score-streak">
             <div className="flex-1 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg px-3 py-2 text-center border border-yellow-300">
               <div className="text-xs text-yellow-800 font-medium">Score</div>
               <div className="text-lg font-bold text-yellow-900">{score}</div>
@@ -370,7 +431,7 @@ export default function Home() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="px-4 py-4 space-y-4 bg-white min-h-[calc(100vh-180px)]">
-            <div>
+            <div data-tutorial="settings">
               <label className="block text-sm font-semibold text-gray-800 mb-2">Difficulty</label>
               <div className="flex gap-2">
                 {(['easy', 'medium', 'hard'] as const).map((level) => (
@@ -423,6 +484,7 @@ export default function Home() {
                 setActiveTab('problem')
               }}
               disabled={isLoading}
+              data-tutorial="new-problem"
               className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 text-white font-bold py-4 rounded-lg transition-all shadow-md"
             >
               {isLoading ? '⏳ Generating...' : '✨ Generate New Problem'}
@@ -442,15 +504,15 @@ export default function Home() {
         {/* Problem Tab */}
         {activeTab === 'problem' && (
           <div className="px-4 py-4 space-y-4 min-h-[calc(100vh-180px)]">
-            {problem ? (
+            {(displayProblem || tutorialMode) ? (
               <>
                 {/* Problem Card */}
-                <div className="bg-white rounded-lg border-2 border-blue-200 p-5 shadow-sm">
+                <div className="bg-white rounded-lg border-2 border-blue-200 p-5 shadow-sm" data-tutorial="answer-input">
                   <div className="mb-4">
                     <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">
                       Your Problem
                     </div>
-                    <p className="text-base text-gray-900 leading-relaxed">{problem.problem_text}</p>
+                    <p className="text-base text-gray-900 leading-relaxed">{displayProblem.problem_text}</p>
                   </div>
 
                   <form onSubmit={submitAnswer} className="space-y-3">
@@ -464,7 +526,7 @@ export default function Home() {
                         id="answer"
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
-                        disabled={!!feedback || isLoading}
+                        disabled={!!feedback || isLoading || tutorialMode}
                         className="w-full px-4 py-3.5 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                         placeholder="Type your answer"
                         required
@@ -473,7 +535,7 @@ export default function Home() {
 
                     <button
                       type="submit"
-                      disabled={!userAnswer || isLoading || !!feedback}
+                      disabled={!userAnswer || isLoading || !!feedback || tutorialMode}
                       className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-3.5 rounded-lg transition-all shadow-md"
                     >
                       {isLoading ? '⏳ Checking...' : '✓ Submit Answer'}
@@ -484,13 +546,17 @@ export default function Home() {
                     <div className="mt-4 grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setShowHint(!showHint)}
-                        className="py-2.5 px-3 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-2 border-amber-300 rounded-lg transition-all"
+                        disabled={tutorialMode}
+                        className="py-2.5 px-3 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-2 border-amber-300 rounded-lg transition-all disabled:opacity-50"
+                        data-tutorial="hint-button"
                       >
                         💡 {showHint ? 'Hide Hint' : 'Show Hint'}
                       </button>
                       <button
                         onClick={() => setShowSolution(!showSolution)}
-                        className="py-2.5 px-3 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 border-2 border-purple-300 rounded-lg transition-all"
+                        disabled={tutorialMode}
+                        className="py-2.5 px-3 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 border-2 border-purple-300 rounded-lg transition-all disabled:opacity-50"
+                        data-tutorial="solution-button"
                       >
                         📖 {showSolution ? 'Hide Solution' : 'Show Solution'}
                       </button>
@@ -499,19 +565,19 @@ export default function Home() {
                 </div>
 
                 {/* Hint */}
-                {showHint && problem.hint && (
+                {showHint && displayProblem.hint && (
                   <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 shadow-sm animate-fade-in">
                     <div className="text-sm font-bold text-amber-900 mb-2">💡 Hint</div>
-                    <p className="text-sm text-amber-900 leading-relaxed">{problem.hint}</p>
+                    <p className="text-sm text-amber-900 leading-relaxed">{displayProblem.hint}</p>
                   </div>
                 )}
 
                 {/* Solution */}
-                {showSolution && problem.solution_steps && (
+                {showSolution && displayProblem.solution_steps && (
                   <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 shadow-sm animate-fade-in">
                     <div className="text-sm font-bold text-purple-900 mb-2">📝 Solution Steps</div>
                     <ol className="space-y-1.5 list-decimal list-inside text-sm text-purple-900">
-                      {problem.solution_steps.map((step, index) => (
+                      {displayProblem.solution_steps.map((step, index) => (
                         <li key={index} className="pl-1">{step}</li>
                       ))}
                     </ol>
@@ -526,12 +592,16 @@ export default function Home() {
                       : 'bg-orange-50 border-orange-300'
                   }`}>
                     <div className={`text-lg font-bold mb-2 ${
-                      isCorrect ? 'text-green-900' : 'text-orange-900'
+                      isCorrect
+                        ? 'text-green-900'
+                        : 'text-orange-900'
                     }`}>
                       {isCorrect ? `✓ Great job, ${userName}!` : `✗ Not quite, ${userName}`}
                     </div>
                     <p className={`text-sm leading-relaxed ${
-                      isCorrect ? 'text-green-900' : 'text-orange-900'
+                      isCorrect
+                        ? 'text-green-900'
+                        : 'text-orange-900'
                     }`}>
                       {feedback}
                     </p>
@@ -570,19 +640,21 @@ export default function Home() {
         )}
 
         {/* History Tab */}
-        {activeTab === 'history' && history.length > 0 && (
-          <div className="px-4 py-4 min-h-[calc(100vh-180px)] bg-white">
-            <h3 className="text-sm font-bold text-gray-800 mb-3">Recent Problems ({history.length})</h3>
+        {activeTab === 'history' && (displayHistory.length > 0 || tutorialMode) && (
+          <div className="px-4 py-4 min-h-[calc(100vh-180px)] bg-white" data-tutorial="history">
+            <h3 className="text-sm font-bold text-gray-800 mb-3">Recent Problems ({displayHistory.length})</h3>
             <div className="space-y-3">
-              {history.map((item, index) => (
+              {displayHistory.map((item, index) => (
                 <div
                   key={index}
                   className={`p-4 rounded-lg border-l-4 cursor-pointer ${
                     item.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
                   }`}
                   onClick={() => {
-                    setSelectedHistoryItem(item)
-                    setShowProblemDetailModal(true)
+                    if (!tutorialMode) {
+                      setSelectedHistoryItem(item)
+                      setShowProblemDetailModal(true)
+                    }
                   }}
                 >
                   <div className="flex justify-between items-start mb-2">
@@ -615,7 +687,19 @@ export default function Home() {
         <div className="flex mb-6 justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Otto's Math Adventure 🐙</h1>
-            <p className="text-purple-700">Primary 5 Math • Powered by AI Tutoring</p>
+            <div className="flex items-center gap-3">
+              <p className="text-purple-700">Primary 5 Math • Powered by AI Tutoring</p>
+              <button
+                onClick={() => {
+                  setShowTutorial(true)
+                  setTutorialMode(true)
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-full transition-all shadow-sm hover:shadow-md active:scale-95"
+              >
+                <span>📚</span>
+                <span>Show Tutorial</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -634,7 +718,7 @@ export default function Home() {
                   <span>Change Name</span>
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3" data-tutorial="score-streak">
                 <div className="text-center p-3 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-lg border border-yellow-300">
                   <div className="text-xs font-medium text-yellow-800 mb-1">Total Score</div>
                   <div className="text-2xl font-bold text-yellow-900">{score}</div>
@@ -656,7 +740,7 @@ export default function Home() {
             </div>
 
             {/* Settings */}
-            <div className="bg-white rounded-lg border-2 border-purple-200 p-4 shadow-md">
+            <div className="bg-white rounded-lg border-2 border-purple-200 p-4 shadow-md" data-tutorial="settings">
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-purple-800 mb-2">🎯 Difficulty Level</label>
                 <div className="flex gap-2">
@@ -706,6 +790,7 @@ export default function Home() {
               <button
                 onClick={generateProblem}
                 disabled={isLoading}
+                data-tutorial="new-problem"
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg transition-all shadow-md"
               >
                 {isLoading ? '⏳ Loading...' : '✨ New Problem'}
@@ -713,19 +798,21 @@ export default function Home() {
             </div>
 
             {/* History */}
-            {history.length > 0 && (
+            {(displayHistory.length > 0 || tutorialMode) && (
               <div className="bg-white rounded-lg border-2 border-purple-200 p-4 shadow-md">
-                <h3 className="text-sm font-bold text-purple-800 mb-3">📚 Recent Problems ({history.length})</h3>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {history.map((item, index) => (
+                <h3 className="text-sm font-bold text-purple-800 mb-3">📚 Recent Problems ({displayHistory.length})</h3>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto" data-tutorial="history">
+                  {displayHistory.map((item, index) => (
                     <div
                       key={index}
                       className={`p-2 rounded border-l-4 cursor-pointer ${
                         item.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
                       }`}
                       onClick={() => {
-                        setSelectedHistoryItem(item)
-                        setShowProblemDetailModal(true)
+                        if (!tutorialMode) {
+                          setSelectedHistoryItem(item)
+                          setShowProblemDetailModal(true)
+                        }
                       }}
                     >
                       <div className="flex justify-between items-start mb-1">
@@ -752,13 +839,13 @@ export default function Home() {
 
           {/* Main Content - Desktop */}
           <div className="col-span-2 space-y-4">
-            {problem ? (
+            {(displayProblem || tutorialMode) ? (
               <>
                 {/* Problem Card */}
-                <div className="bg-white rounded-lg border-2 border-purple-200 p-6 shadow-md">
+                <div className="bg-white rounded-lg border-2 border-purple-200 p-6 shadow-md" data-tutorial="answer-input">
                   <div className="mb-4">
                     <div className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-3">🎯 Your Challenge</div>
-                    <p className="text-lg text-gray-900 leading-relaxed">{problem.problem_text}</p>
+                    <p className="text-lg text-gray-900 leading-relaxed">{displayProblem.problem_text}</p>
                   </div>
 
                   <form onSubmit={submitAnswer} className="space-y-3">
@@ -772,7 +859,7 @@ export default function Home() {
                         id="answer"
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
-                        disabled={!!feedback || isLoading}
+                        disabled={!!feedback || isLoading || tutorialMode}
                         className="w-full px-4 py-3 text-lg border-2 border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                         placeholder="Type your answer here..."
                         required
@@ -781,7 +868,7 @@ export default function Home() {
 
                     <button
                       type="submit"
-                      disabled={!userAnswer || isLoading || !!feedback}
+                      disabled={!userAnswer || isLoading || !!feedback || tutorialMode}
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg transition-all shadow-md"
                     >
                       {isLoading ? '⏳ Checking...' : '✓ Submit Answer'}
@@ -792,13 +879,17 @@ export default function Home() {
                     <div className="mt-4 grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setShowHint(!showHint)}
+                        disabled={tutorialMode}
                         className="py-2 px-3 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-lg transition-all"
+                        data-tutorial="hint-button"
                       >
                         💡 {showHint ? 'Hide Hint' : 'Need a Hint?'}
                       </button>
                       <button
                         onClick={() => setShowSolution(!showSolution)}
+                        disabled={tutorialMode}
                         className="py-2 px-3 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 rounded-lg transition-all"
+                        data-tutorial="solution-button"
                       >
                         📖 {showSolution ? 'Hide Solution' : 'Show Solution'}
                       </button>
@@ -807,19 +898,19 @@ export default function Home() {
                 </div>
 
                 {/* Hint */}
-                {showHint && problem.hint && (
+                {showHint && displayProblem.hint && (
                   <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 animate-fade-in shadow-sm">
                     <div className="text-sm font-bold text-amber-900 mb-2">💡 Otto's Hint</div>
-                    <p className="text-sm text-amber-900 leading-relaxed">{problem.hint}</p>
+                    <p className="text-sm text-amber-900 leading-relaxed">{displayProblem.hint}</p>
                   </div>
                 )}
 
                 {/* Solution */}
-                {showSolution && problem.solution_steps && (
+                {showSolution && displayProblem.solution_steps && (
                   <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 animate-fade-in shadow-sm">
                     <div className="text-sm font-bold text-purple-900 mb-2">📝 Step-by-Step Solution</div>
                     <ol className="space-y-1.5 list-decimal list-inside text-sm text-purple-900">
-                      {problem.solution_steps.map((step, index) => (
+                      {displayProblem.solution_steps.map((step, index) => (
                         <li key={index} className="pl-1">{step}</li>
                       ))}
                     </ol>
@@ -884,6 +975,33 @@ export default function Home() {
           solutionSteps={selectedHistoryItem.solution_steps}
         />
       )}
+
+      {/* Tutorial Modal */}
+      <TutorialModal
+        isOpen={showTutorial}
+        onClose={() => {
+          setShowTutorial(false)
+          setTutorialMode(false)
+          localStorage.setItem('mathPractice_hasSeenTutorial', 'true')
+        }}
+        userName={userName}
+        onStepChange={(step) => {
+          // Automatically switch to the correct tab based on tutorial step (for mobile)
+          if (step === 0) {
+            // Step 1: Score/Streak - visible in mobile header
+            setActiveTab('problem')
+          } else if (step === 1 || step === 2) {
+            // Step 2-3: Settings and New Problem button
+            setActiveTab('settings')
+          } else if (step >= 3 && step <= 5) {
+            // Step 4-6: Answer input, Hint, Solution
+            setActiveTab('problem')
+          } else if (step === 6) {
+            // Step 7: History
+            setActiveTab('history')
+          }
+        }}
+      />
     </div>
   )
 }
