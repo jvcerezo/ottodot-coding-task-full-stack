@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import OttoTutor from '@/components/OttoTutor'
 import ConfirmModal from '@/components/ConfirmModal'
+import ProblemDetailModal from '@/components/ProblemDetailModal'
 import { getOttoEncouragement } from '@/lib/ottoPersonality'
 
 interface MathProblem {
@@ -19,6 +20,8 @@ interface HistoryItem {
   correctAnswer: number
   isCorrect: boolean
   timestamp: string // Changed to string for localStorage
+  hint?: string
+  solution_steps?: string[]
 }
 
 export default function Home() {
@@ -42,6 +45,8 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'problem' | 'settings' | 'history'>('problem')
   const [lastResult, setLastResult] = useState<'correct' | 'incorrect' | null>(null)
   const [showResetModal, setShowResetModal] = useState(false)
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<HistoryItem | null>(null)
+  const [showProblemDetailModal, setShowProblemDetailModal] = useState(false)
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -219,7 +224,9 @@ export default function Home() {
           userAnswer: Number(userAnswer),
           correctAnswer: data.correct_answer,
           isCorrect: data.is_correct,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          hint: problem.hint,
+          solution_steps: problem.solution_steps
         }, ...prev].slice(0, 10))
       }
     } catch (error) {
@@ -570,9 +577,13 @@ export default function Home() {
               {history.map((item, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-lg border-l-4 ${
+                  className={`p-4 rounded-lg border-l-4 cursor-pointer ${
                     item.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
                   }`}
+                  onClick={() => {
+                    setSelectedHistoryItem(item)
+                    setShowProblemDetailModal(true)
+                  }}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className={`text-sm font-bold ${
@@ -709,9 +720,13 @@ export default function Home() {
                   {history.map((item, index) => (
                     <div
                       key={index}
-                      className={`p-2 rounded border-l-4 ${
+                      className={`p-2 rounded border-l-4 cursor-pointer ${
                         item.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
                       }`}
+                      onClick={() => {
+                        setSelectedHistoryItem(item)
+                        setShowProblemDetailModal(true)
+                      }}
                     >
                       <div className="flex justify-between items-start mb-1">
                         <span className={`text-xs font-bold ${
@@ -854,6 +869,21 @@ export default function Home() {
         cancelText="No, Keep My Progress"
         type="danger"
       />
+
+      {/* Problem Detail Modal */}
+      {selectedHistoryItem && (
+        <ProblemDetailModal
+          isOpen={showProblemDetailModal}
+          onClose={() => setShowProblemDetailModal(false)}
+          problem={selectedHistoryItem.problem}
+          userAnswer={selectedHistoryItem.userAnswer}
+          correctAnswer={selectedHistoryItem.correctAnswer}
+          isCorrect={selectedHistoryItem.isCorrect}
+          timestamp={selectedHistoryItem.timestamp}
+          hint={selectedHistoryItem.hint}
+          solutionSteps={selectedHistoryItem.solution_steps}
+        />
+      )}
     </div>
   )
 }
