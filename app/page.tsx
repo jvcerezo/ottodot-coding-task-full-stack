@@ -50,6 +50,7 @@ export default function Home() {
   const [showProblemDetailModal, setShowProblemDetailModal] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
   const [tutorialMode, setTutorialMode] = useState(false)
+  const [hasLoadedSettings, setHasLoadedSettings] = useState(false)
 
   // Mock data for tutorial
   const mockProblem: MathProblem = {
@@ -127,6 +128,8 @@ export default function Home() {
     }
     
     setIsInitialized(true)
+    // Set this after a brief delay to ensure settings are loaded
+    setTimeout(() => setHasLoadedSettings(true), 100)
   }, [])
 
   // Save data to localStorage whenever it changes (but not on initial mount)
@@ -155,19 +158,16 @@ export default function Home() {
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem('mathPractice_difficulty', difficulty)
-    if (isInitialized) {
+    // Only show toast if settings have been loaded (not on initial load)
+    if (hasLoadedSettings) {
       toast.success(`Difficulty set to ${difficulty}`, { duration: 2000 })
     }
-  }, [difficulty, isInitialized])
+  }, [difficulty, isInitialized, hasLoadedSettings])
 
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem('mathPractice_problemType', problemType)
-    if (isInitialized) {
-      const typeLabels = {
-        mixed: 'Mixed',
-        addition: 'Addition',
-        subtraction: 'Subtraction',
+    // Only show toast if settings have been loaded (not on initial load)
         multiplication: 'Multiplication',
         division: 'Division'
       }
@@ -431,50 +431,52 @@ export default function Home() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="px-4 py-4 space-y-4 bg-white min-h-[calc(100vh-180px)]">
-            <div data-tutorial="settings">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">Difficulty</label>
-              <div className="flex gap-2">
-                {(['easy', 'medium', 'hard'] as const).map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setDifficulty(level)}
-                    disabled={isLoading}
-                    className={`flex-1 py-3 px-2 rounded-lg text-sm font-semibold transition-all ${
-                      difficulty === level
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 active:bg-gray-200'
-                    }`}
-                  >
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </button>
-                ))}
+            <div data-tutorial="settings" className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Difficulty</label>
+                <div className="flex gap-2">
+                  {(['easy', 'medium', 'hard'] as const).map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => setDifficulty(level)}
+                      disabled={isLoading}
+                      className={`flex-1 py-3 px-2 rounded-lg text-sm font-semibold transition-all ${
+                        difficulty === level
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                      }`}
+                    >
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">Problem Type</label>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { value: 'mixed', label: 'Mixed', emoji: '🔀' },
-                  { value: 'addition', label: 'Add', emoji: '➕' },
-                  { value: 'subtraction', label: 'Sub', emoji: '➖' },
-                  { value: 'multiplication', label: 'Mul', emoji: '✖️' },
-                  { value: 'division', label: 'Div', emoji: '➗' }
-                ] as const).map((type) => (
-                  <button
-                    key={type.value}
-                    onClick={() => setProblemType(type.value)}
-                    disabled={isLoading}
-                    className={`py-3 px-2 rounded-lg text-xs font-semibold transition-all ${
-                      problemType === type.value
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 active:bg-gray-200'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">{type.emoji}</div>
-                    {type.label}
-                  </button>
-                ))}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Problem Type</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { value: 'mixed', label: 'Mixed', emoji: '🔀' },
+                    { value: 'addition', label: 'Add', emoji: '➕' },
+                    { value: 'subtraction', label: 'Sub', emoji: '➖' },
+                    { value: 'multiplication', label: 'Mul', emoji: '✖️' },
+                    { value: 'division', label: 'Div', emoji: '➗' }
+                  ] as const).map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => setProblemType(type.value)}
+                      disabled={isLoading}
+                      className={`py-3 px-2 rounded-lg text-xs font-semibold transition-all ${
+                        problemType === type.value
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                      }`}
+                    >
+                      <div className="text-xl mb-1">{type.emoji}</div>
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -986,19 +988,20 @@ export default function Home() {
         }}
         userName={userName}
         onStepChange={(step) => {
-          // Automatically switch to the correct tab based on tutorial step (for mobile)
-          if (step === 0) {
-            // Step 1: Score/Streak - visible in mobile header
-            setActiveTab('problem')
-          } else if (step === 1 || step === 2) {
-            // Step 2-3: Settings and New Problem button
-            setActiveTab('settings')
-          } else if (step >= 3 && step <= 5) {
-            // Step 4-6: Answer input, Hint, Solution
-            setActiveTab('problem')
-          } else if (step === 6) {
-            // Step 7: History
-            setActiveTab('history')
+          // Map tutorial steps to mobile tabs
+          const tutorialSteps = [
+            { mobileTab: 'problem' as const },      // Step 0: Score/Streak
+            { mobileTab: 'settings' as const },     // Step 1: Settings
+            { mobileTab: 'settings' as const },     // Step 2: New Problem button
+            { mobileTab: 'problem' as const },      // Step 3: Answer input
+            { mobileTab: 'problem' as const },      // Step 4: Hint button
+            { mobileTab: 'problem' as const },      // Step 5: Solution button
+            { mobileTab: 'history' as const }       // Step 6: History
+          ]
+          
+          const stepConfig = tutorialSteps[step]
+          if (stepConfig) {
+            setActiveTab(stepConfig.mobileTab)
           }
         }}
       />
