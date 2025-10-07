@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 
 interface MathProblem {
   problem_text: string
@@ -94,11 +95,24 @@ export default function Home() {
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem('mathPractice_difficulty', difficulty)
+    if (isInitialized) {
+      toast.success(`Difficulty set to ${difficulty}`, { duration: 2000 })
+    }
   }, [difficulty, isInitialized])
 
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem('mathPractice_problemType', problemType)
+    if (isInitialized) {
+      const typeLabels = {
+        mixed: 'Mixed',
+        addition: 'Addition',
+        subtraction: 'Subtraction',
+        multiplication: 'Multiplication',
+        division: 'Division'
+      }
+      toast.success(`Problem type: ${typeLabels[problemType]}`, { duration: 10000 })
+    }
   }, [problemType, isInitialized])
 
   const handleNameSubmit = (e: React.FormEvent) => {
@@ -106,6 +120,7 @@ export default function Home() {
     if (tempName.trim()) {
       setUserName(tempName.trim())
       setShowNameModal(false)
+      toast.success(`Welcome, ${tempName.trim()}! 🎉`)
     }
   }
 
@@ -116,6 +131,8 @@ export default function Home() {
     setIsCorrect(null)
     setShowHint(false)
     setShowSolution(false)
+
+    const toastId = toast.loading('Generating new problem...')
 
     try {
       const response = await fetch('/api/math-problem', {
@@ -136,9 +153,10 @@ export default function Home() {
         solution_steps: data.solution_steps
       })
       setSessionId(data.session_id)
+      toast.success('New problem ready! 📝', { id: toastId })
     } catch (error) {
       console.error('Error generating problem:', error)
-      alert('Failed to generate problem. Please try again.')
+      toast.error('Failed to generate problem. Please try again.', { id: toastId })
     } finally {
       setIsLoading(false)
     }
@@ -147,9 +165,13 @@ export default function Home() {
   const submitAnswer = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!sessionId) return
+    if (!sessionId) {
+      toast.error('No problem session found!')
+      return
+    }
 
     setIsLoading(true)
+    const toastId = toast.loading('Checking your answer...')
 
     try {
       const response = await fetch('/api/math-problem/submit', {
@@ -172,8 +194,10 @@ export default function Home() {
       if (data.is_correct) {
         setScore(prev => prev + 10)
         setStreak(prev => prev + 1)
+        toast.success(`Correct! +10 points 🎉`, { id: toastId })
       } else {
         setStreak(0)
+        toast.error('Not quite right. Keep trying! 💪', { id: toastId })
       }
 
       // Add to history
@@ -188,7 +212,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error submitting answer:', error)
-      alert('Failed to submit answer. Please try again.')
+      toast.error('Failed to submit answer. Please try again.', { id: toastId })
     } finally {
       setIsLoading(false)
     }
@@ -202,6 +226,7 @@ export default function Home() {
       localStorage.removeItem('mathPractice_score')
       localStorage.removeItem('mathPractice_streak')
       localStorage.removeItem('mathPractice_history')
+      toast.success('Progress reset successfully! 🔄')
     }
   }
 
