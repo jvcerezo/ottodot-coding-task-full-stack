@@ -1,16 +1,18 @@
 # Otto's Math Adventure 🐙 - AI-Powered Math Tutor
 
-An interactive, AI-powered math problem generator designed for Primary 5 students (Singapore curriculum). Features an engaging octopus character named Otto who provides personalized tutoring, adaptive difficulty levels, and real-time feedback using Google's Gemini AI.
+An interactive, AI-powered math problem generator designed for Primary 5 students (Singapore curriculum). Features an engaging octopus character named Otto who provides personalized tutoring, adaptive difficulty levels, and real-time feedback using Google's Gemini AI. 
+
+made by Jet Timothy V. Cerezo 
 
 ## 🌟 Live Demo & Credentials
 
-**Live Demo URL**: [Your Vercel Deployment URL]
+**Live Demo URL**: [\[Your Vercel Deployment URL\]](https://ottodot-coding-task-full-stack-eta.vercel.app/)
 
 ### Supabase Project Credentials (For Testing)
 
 ```
-SUPABASE_URL: [Your Supabase Project URL]
-SUPABASE_ANON_KEY: [Your Supabase Anon Key]
+SUPABASE_URL: https://ameihtmzfgqkrqhceqxf.supabase.co
+SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtZWlodG16Zmdxa3JxaGNlcXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzAyNTMsImV4cCI6MjA3NTM0NjI1M30.U32Wti8kFUi4o2CxMK1B0tieOOykquLq1ZBtOyQzZAQ
 ```
 
 ## 📚 Tech Stack
@@ -516,4 +518,3 @@ If I had more time, I would add:
 
 *Making math fun, one problem at a time!*
 ````
-</copilot-edited-file>
