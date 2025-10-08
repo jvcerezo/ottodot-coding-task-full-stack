@@ -155,24 +155,11 @@ export default function Home() {
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem('mathPractice_difficulty', difficulty)
-    if (isInitialized) {
-      toast.success(`Difficulty set to ${difficulty}`, { duration: 2000 })
-    }
   }, [difficulty, isInitialized])
 
   useEffect(() => {
     if (!isInitialized) return
     localStorage.setItem('mathPractice_problemType', problemType)
-    if (isInitialized) {
-      const typeLabels = {
-        mixed: 'Mixed',
-        addition: 'Addition',
-        subtraction: 'Subtraction',
-        multiplication: 'Multiplication',
-        division: 'Division'
-      }
-      toast.success(`Problem type: ${typeLabels[problemType]}`, { duration: 10000 })
-    }
   }, [problemType, isInitialized])
 
   const handleNameSubmit = (e: React.FormEvent) => {
@@ -299,6 +286,23 @@ export default function Home() {
   const changeName = () => {
     setTempName(userName)
     setShowNameModal(true)
+  }
+
+  const handleDifficultyChange = (level: 'easy' | 'medium' | 'hard') => {
+    setDifficulty(level)
+    toast.success(`Difficulty set to ${level}`, { duration: 2000 })
+  }
+
+  const handleProblemTypeChange = (type: 'mixed' | 'addition' | 'subtraction' | 'multiplication' | 'division') => {
+    setProblemType(type)
+    const typeLabels = {
+      mixed: 'Mixed',
+      addition: 'Addition',
+      subtraction: 'Subtraction',
+      multiplication: 'Multiplication',
+      division: 'Division'
+    }
+    toast.success(`Problem type: ${typeLabels[type]}`, { duration: 2000 })
   }
 
   // Name Modal
@@ -437,7 +441,7 @@ export default function Home() {
                 {(['easy', 'medium', 'hard'] as const).map((level) => (
                   <button
                     key={level}
-                    onClick={() => setDifficulty(level)}
+                    onClick={() => handleDifficultyChange(level)}
                     disabled={isLoading}
                     className={`flex-1 py-3 px-2 rounded-lg text-sm font-semibold transition-all ${
                       difficulty === level
@@ -463,7 +467,7 @@ export default function Home() {
                 ] as const).map((type) => (
                   <button
                     key={type.value}
-                    onClick={() => setProblemType(type.value)}
+                    onClick={() => handleProblemTypeChange(type.value)}
                     disabled={isLoading}
                     className={`py-3 px-2 rounded-lg text-xs font-semibold transition-all ${
                       problemType === type.value
@@ -747,7 +751,7 @@ export default function Home() {
                   {(['easy', 'medium', 'hard'] as const).map((level) => (
                     <button
                       key={level}
-                      onClick={() => setDifficulty(level)}
+                      onClick={() => handleDifficultyChange(level)}
                       disabled={isLoading}
                       className={`flex-1 py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
                         difficulty === level
@@ -773,7 +777,7 @@ export default function Home() {
                   ] as const).map((type) => (
                     <button
                       key={type.value}
-                      onClick={() => setProblemType(type.value)}
+                      onClick={() => handleProblemTypeChange(type.value)}
                       disabled={isLoading}
                       className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
                         problemType === type.value
