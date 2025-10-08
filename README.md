@@ -6,7 +6,7 @@ made by Jet Timothy V. Cerezo
 
 ## 🌟 Live Demo & Credentials
 
-**Live Demo URL**: [\[Your Vercel Deployment URL\]](https://ottodot-coding-task-full-stack-eta.vercel.app/)
+**Live Demo URL**: https://ottodot-coding-task-full-stack-eta.vercel.app/
 
 ### Supabase Project Credentials (For Testing)
 
