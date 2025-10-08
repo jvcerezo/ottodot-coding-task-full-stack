@@ -366,10 +366,11 @@ export default function Home() {
                   setShowTutorial(true)
                   setTutorialMode(true)
                 }}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-full transition-all active:scale-95"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-full transition-all active:scale-95"
                 aria-label="Show Tutorial"
               >
                 <span>📚</span>
+                <span>Tutorial</span>
               </button>
               <button
                 onClick={changeName}
